@@ -218,3 +218,11 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# ThreatLens local data and trained artifacts
+data/**
+!data/.gitkeep
+models/
+*.joblib
+*.pkl
+*.sqlite3
