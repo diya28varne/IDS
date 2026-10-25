@@ -20,7 +20,10 @@ if str(SRC) not in sys.path:
 
 from threatlens.data.config import DEFAULT_RANDOM_SEED  # noqa: E402
 from threatlens.data.dataset import load_csv  # noqa: E402
-from threatlens.data.features import prepare_features_labels  # noqa: E402
+from threatlens.data.features import (  # noqa: E402
+    filter_splits_drop_constants,
+    prepare_features_labels,
+)
 from threatlens.data.split import split_xy  # noqa: E402
 from threatlens.models.baseline_rf import train_random_forest  # noqa: E402
 
@@ -60,24 +63,27 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     args = parse_args()
     frame = load_csv(args.input)
-    matrix = prepare_features_labels(frame)
+    # Policy exclusions only here — constant columns are decided after the split.
+    matrix = prepare_features_labels(frame, drop_constant_columns=False)
     split = split_xy(matrix.X, matrix.y, random_seed=args.seed)
+    split, const_filter = filter_splits_drop_constants(split)
 
     print("=== ThreatLens Random Forest baseline ===")
     print(f"input: {args.input}")
-    print(f"rows: {len(matrix.X)}  features: {len(matrix.feature_names)}")
+    print(f"rows: {len(matrix.X)}  features_after_train_filter: {len(const_filter.kept_columns)}")
     print(
         "split sizes: "
         f"train={len(split.X_train)} val={len(split.X_val)} test={len(split.X_test)}"
     )
-    print(f"excluded columns: {matrix.excluded_columns}")
+    print(f"policy-excluded columns: {matrix.excluded_columns}")
+    print(f"train-constant columns dropped: {const_filter.dropped_columns}")
     print(f"positive_class for FPR: {args.positive_class!r}")
     print("fitting on TRAINING SPLIT ONLY (test not used for selection)...")
 
     baseline = train_random_forest(
         split.X_train,
         split.y_train,
-        feature_names=matrix.feature_names,
+        feature_names=const_filter.kept_columns,
         positive_class=args.positive_class,
         negative_class=args.negative_class,
         random_seed=args.seed,
@@ -102,9 +108,10 @@ def main() -> int:
         "seed": args.seed,
         "n_estimators": args.n_estimators,
         "max_depth": args.max_depth,
-        "n_features": len(matrix.feature_names),
-        "feature_names": list(matrix.feature_names),
-        "excluded_columns": list(matrix.excluded_columns),
+        "n_features": len(const_filter.kept_columns),
+        "feature_names": list(const_filter.kept_columns),
+        "policy_excluded_columns": list(matrix.excluded_columns),
+        "train_constant_columns_dropped": list(const_filter.dropped_columns),
         "split_sizes": {
             "train": len(split.X_train),
             "val": len(split.X_val),
