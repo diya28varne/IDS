@@ -222,7 +222,19 @@ __marimo__/
 # ThreatLens local data and trained artifacts
 data/**
 !data/.gitkeep
-models/
+!data/raw/
+!data/raw/.gitkeep
+!data/raw/README.md
+!data/processed/
+!data/processed/.gitkeep
+!data/processed/README.md
+!artifacts/
+!artifacts/.gitkeep
+!artifacts/README.md
+artifacts/models/
+# Only ignore a root-level models/ directory for saved weights.
+# Do NOT use a bare "models/" rule — that also hid src/threatlens/models/.
+/models/
 *.joblib
 *.pkl
 *.sqlite3

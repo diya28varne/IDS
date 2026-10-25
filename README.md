@@ -10,16 +10,18 @@ ThreatLens is a final-year research prototype for students, researchers, and ana
 
 ## Current status
 
-This repository is initialized and nothing else is implemented.
-
 Present now:
 
-- This README
-- A Python `.gitignore`
+- Python package foundation (`src/threatlens`) with a local virtual environment workflow
+- Minimal dependencies in `requirements.txt` / `pyproject.toml`
+- Dataset **intake** helpers: path conventions, CSV schema checks, load, and stratified train/val/test split
+- Synthetic fixture at `tests/fixtures/synthetic_flows.csv` (not a real IDS corpus)
+- Smoke tests and intake tests (`pytest`)
 
 Not implemented yet:
 
-- Dataset loading, validation, and preprocessing
+- Loading a real CICIDS2017 / UNSW-NB15 extract
+- Feature scaling / encoders fitted only on train (next preprocessing step)
 - A supervised baseline (planned: Random Forest)
 - An anomaly baseline (planned: Isolation Forest)
 - A tested hybrid fusion rule
