@@ -1,8 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "fastapi",
-  "installCommand": "pip install -e . && cd frontend && npm ci",
-  "buildCommand": "cd frontend && npm run build",
+  "fluid": true,
+  "buildCommand": "cd frontend && npm ci && npm run build",
   "functions": {
     "app.py": {
       "maxDuration": 60,
