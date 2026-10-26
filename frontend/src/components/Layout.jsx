@@ -55,12 +55,7 @@ export function Layout({
       <div className="content-col">
         <header className="topbar">
           <div className="topbar-leading">
-            <a
-              className="btn-back"
-              href="http://127.0.0.1:8000/"
-              target="_blank"
-              rel="noopener"
-            >
+            <a className="btn-back" href="/">
               <span aria-hidden="true">←</span>
               Back
             </a>

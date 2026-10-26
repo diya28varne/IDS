@@ -8,6 +8,7 @@ or local filesystem locations.
 
 from __future__ import annotations
 
+import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
@@ -30,6 +31,7 @@ from threatlens.api.schemas import (
 )
 from threatlens.api.state import ModelBundle, load_model_bundle
 from threatlens.api.validation import records_to_feature_frame
+from threatlens.data.config import project_root
 from threatlens.models.inference import predict_alerts
 from threatlens.persistence.sqlite_store import (
     AlertStore,
@@ -37,6 +39,8 @@ from threatlens.persistence.sqlite_store import (
     open_alert_store,
 )
 from threatlens.web import INDEX_HTML, LIMITS_HTML, STATIC_DIR
+
+DASHBOARD_DIST = project_root() / "frontend" / "dist"
 
 DEFAULT_ALERT_LIMIT = 50
 MAX_ALERT_LIMIT = 200
@@ -103,13 +107,21 @@ def create_app(
 
     app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
-    # Vite dashboard only. Same-origin static UI on :8000 does not need CORS.
+    # Local Vite (:5173) and same-origin /dashboard on Vercel.
+    cors_origins = [
+        "http://127.0.0.1:5173",
+        "http://localhost:5173",
+    ]
+    extra = os.environ.get("THREATLENS_CORS_ORIGINS", "")
+    if extra.strip():
+        cors_origins.extend(
+            origin.strip() for origin in extra.split(",") if origin.strip()
+        )
+
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=[
-            "http://127.0.0.1:5173",
-            "http://localhost:5173",
-        ],
+        allow_origins=cors_origins,
+        allow_origin_regex=r"https://.*\.vercel\.app",
         allow_credentials=False,
         allow_methods=["GET", "POST", "OPTIONS"],
         allow_headers=["Content-Type", "Accept"],
@@ -257,6 +269,14 @@ def create_app(
         if stored is None:
             raise HTTPException(status_code=404, detail="alert record not found")
         return StoredAlertResponse(**stored.as_dict())
+
+    # Built Vite SPA (npm run build). Served at /dashboard on Vercel and local API.
+    if DASHBOARD_DIST.is_dir():
+        app.mount(
+            "/dashboard",
+            StaticFiles(directory=str(DASHBOARD_DIST), html=True),
+            name="dashboard",
+        )
 
     return app
 

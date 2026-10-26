@@ -231,11 +231,20 @@ data/**
 !artifacts/
 !artifacts/.gitkeep
 !artifacts/README.md
-artifacts/models/
+# Trained weights: ignore by default, but keep the shipped CICIDS baselines
+# so Vercel / clean checkouts can load models without a local train step.
+artifacts/models/*
+!artifacts/models/rf_baseline_ddos_friday.joblib
+!artifacts/models/if_baseline_ddos_friday.joblib
+!artifacts/models/rf_baseline_ddos_friday_metrics.json
+!artifacts/models/if_baseline_ddos_friday_metrics.json
+!artifacts/models/hybrid_eval_ddos_friday.json
 # Only ignore a root-level models/ directory for saved weights.
 # Do NOT use a bare "models/" rule — that also hid src/threatlens/models/.
 /models/
 *.joblib
+!artifacts/models/rf_baseline_ddos_friday.joblib
+!artifacts/models/if_baseline_ddos_friday.joblib
 *.pkl
 *.sqlite3
 *.sqlite

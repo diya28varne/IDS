@@ -95,6 +95,9 @@ def default_db_path() -> Path:
     override = os.environ.get(ENV_DB_PATH)
     if override:
         return Path(override).expanduser().resolve()
+    # Vercel Functions only allow writes under /tmp.
+    if os.environ.get("VERCEL"):
+        return Path("/tmp/threatlens_alerts.sqlite3")
     return (project_root() / DEFAULT_DB_RELATIVE).resolve()
 
 

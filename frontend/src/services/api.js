@@ -3,13 +3,11 @@
  * Base URL from VITE_API_BASE_URL, or empty string to use the Vite proxy / same origin.
  */
 
-const DEFAULT_BASE = 'http://127.0.0.1:8000'
-
 function resolveBaseUrl() {
   const configured = import.meta.env.VITE_API_BASE_URL
   if (configured === undefined || configured === null) {
-    // Dev proxy is preferred when the env var is unset.
-    return import.meta.env.DEV ? '' : DEFAULT_BASE
+    // Dev: Vite proxy. Prod (/dashboard on same host): same-origin API.
+    return ''
   }
   return String(configured).replace(/\/$/, '')
 }
@@ -103,5 +101,5 @@ export function predictRecord(record) {
 }
 
 export function getApiBaseLabel() {
-  return API_BASE || '(Vite proxy → http://127.0.0.1:8000)'
+  return API_BASE || '(same origin)'
 }

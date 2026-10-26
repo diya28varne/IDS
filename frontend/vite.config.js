@@ -8,6 +8,8 @@ const apiProxyTarget =
 
 export default defineConfig({
   plugins: [react()],
+  // Production build is mounted by FastAPI at /dashboard on Vercel / :8000.
+  base: process.env.NODE_ENV === 'production' ? '/dashboard/' : '/',
   server: {
     port: 5173,
     proxy: {

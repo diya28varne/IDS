@@ -1,0 +1,298 @@
+{
+  "input": "data\\processed\\Friday-WorkingHours-Afternoon-DDos.cleaned.csv",
+  "seed": 42,
+  "rf_artifact": "C:\\Users\\mr\\IDS\\artifacts\\models\\rf_baseline_ddos_friday.joblib",
+  "if_artifact": "C:\\Users\\mr\\IDS\\artifacts\\models\\if_baseline_ddos_friday.joblib",
+  "validation": {
+    "decision_counts": {
+      "SUSPICIOUS": 3067,
+      "DDoS": 20478,
+      "BENIGN": 12148
+    },
+    "suspicious_rate": 0.08592721261872076,
+    "random_forest": {
+      "positive_class": "DDoS",
+      "negative_class": "BENIGN",
+      "accuracy": 0.9998318998122881,
+      "precision_per_class": {
+        "BENIGN": 0.9996713769306605,
+        "DDoS": 0.9999511671061627
+      },
+      "recall_per_class": {
+        "BENIGN": 0.9999342581026889,
+        "DDoS": 0.9997558832145298
+      },
+      "f1_per_class": {
+        "BENIGN": 0.9998028002366397,
+        "DDoS": 0.999853515625
+      },
+      "support_per_class": {
+        "BENIGN": 15211,
+        "DDoS": 20482
+      },
+      "macro_f1": 0.9998281579308199,
+      "weighted_f1": 0.9998319026540436,
+      "confusion_matrix": [
+        [
+          15210,
+          1
+        ],
+        [
+          5,
+          20477
+        ]
+      ],
+      "confusion_labels": [
+        "BENIGN",
+        "DDoS"
+      ],
+      "false_positive_rate": 6.57418973111564e-05,
+      "true_positive_rate": 0.9997558832145298,
+      "notes": [
+        "positive_class='DDoS' (attack); FPR = FP/(FP+TN) with FP = predicted DDoS when true BENIGN",
+        "confusion_matrix rows=true, cols=predicted, order=(negative, positive)",
+        "metrics computed with sklearn; not invented",
+        "classification_report_available_via_sklearn"
+      ]
+    },
+    "isolation_forest_proxy": {
+      "positive_class": "DDoS",
+      "negative_class": "BENIGN",
+      "accuracy": 0.3561202476676099,
+      "precision_per_class": {
+        "BENIGN": 0.3788015845784335,
+        "DDoS": 0.15602641717116125
+      },
+      "recall_per_class": {
+        "BENIGN": 0.7983696009466833,
+        "DDoS": 0.027682843472317156
+      },
+      "f1_per_class": {
+        "BENIGN": 0.5138142585149144,
+        "DDoS": 0.0470227235030685
+      },
+      "support_per_class": {
+        "BENIGN": 15211,
+        "DDoS": 20482
+      },
+      "macro_f1": 0.2804184910089914,
+      "weighted_f1": 0.24595153416805005,
+      "confusion_matrix": [
+        [
+          12144,
+          3067
+        ],
+        [
+          19915,
+          567
+        ]
+      ],
+      "confusion_labels": [
+        "BENIGN",
+        "DDoS"
+      ],
+      "false_positive_rate": 0.20163039905331667,
+      "true_positive_rate": 0.027682843472317156,
+      "notes": [
+        "positive_class='DDoS' (attack); FPR = FP/(FP+TN) with FP = predicted DDoS when true BENIGN",
+        "confusion_matrix rows=true, cols=predicted, order=(negative, positive)",
+        "metrics computed with sklearn; not invented",
+        "classification_report_available_via_sklearn",
+        "IF evaluation maps anomaly\u2192DDoS and normal\u2192BENIGN as a proxy only",
+        "Isolation Forest was not trained with labels"
+      ]
+    },
+    "hybrid_binary_proxy": {
+      "positive_class": "DDoS",
+      "negative_class": "BENIGN",
+      "accuracy": 0.9998318998122881,
+      "precision_per_class": {
+        "BENIGN": 0.9996713769306605,
+        "DDoS": 0.9999511671061627
+      },
+      "recall_per_class": {
+        "BENIGN": 0.9999342581026889,
+        "DDoS": 0.9997558832145298
+      },
+      "f1_per_class": {
+        "BENIGN": 0.9998028002366397,
+        "DDoS": 0.999853515625
+      },
+      "support_per_class": {
+        "BENIGN": 15211,
+        "DDoS": 20482
+      },
+      "macro_f1": 0.9998281579308199,
+      "weighted_f1": 0.9998319026540436,
+      "confusion_matrix": [
+        [
+          15210,
+          1
+        ],
+        [
+          5,
+          20477
+        ]
+      ],
+      "confusion_labels": [
+        "BENIGN",
+        "DDoS"
+      ],
+      "false_positive_rate": 6.57418973111564e-05,
+      "true_positive_rate": 0.9997558832145298,
+      "notes": [
+        "positive_class='DDoS' (attack); FPR = FP/(FP+TN) with FP = predicted DDoS when true BENIGN",
+        "confusion_matrix rows=true, cols=predicted, order=(negative, positive)",
+        "metrics computed with sklearn; not invented",
+        "classification_report_available_via_sklearn"
+      ]
+    },
+    "hybrid_binary_proxy_note": "SUSPICIOUS mapped to BENIGN for binary metrics; not promoted to DDoS"
+  },
+  "test": {
+    "decision_counts": {
+      "BENIGN": 15192,
+      "DDoS": 25597,
+      "SUSPICIOUS": 3828
+    },
+    "suspicious_rate": 0.08579689356075039,
+    "random_forest": {
+      "positive_class": "DDoS",
+      "negative_class": "BENIGN",
+      "accuracy": 0.9997310442208127,
+      "precision_per_class": {
+        "BENIGN": 0.9995268138801262,
+        "DDoS": 0.9998827987654804
+      },
+      "recall_per_class": {
+        "BENIGN": 0.9998422215209846,
+        "DDoS": 0.999648478693903
+      },
+      "f1_per_class": {
+        "BENIGN": 0.9996844928222117,
+        "DDoS": 0.999765625
+      },
+      "support_per_class": {
+        "BENIGN": 19014,
+        "DDoS": 25603
+      },
+      "macro_f1": 0.9997250589111059,
+      "weighted_f1": 0.9997310496760548,
+      "confusion_matrix": [
+        [
+          19011,
+          3
+        ],
+        [
+          9,
+          25594
+        ]
+      ],
+      "confusion_labels": [
+        "BENIGN",
+        "DDoS"
+      ],
+      "false_positive_rate": 0.0001577784790154623,
+      "true_positive_rate": 0.999648478693903,
+      "notes": [
+        "positive_class='DDoS' (attack); FPR = FP/(FP+TN) with FP = predicted DDoS when true BENIGN",
+        "confusion_matrix rows=true, cols=predicted, order=(negative, positive)",
+        "metrics computed with sklearn; not invented",
+        "classification_report_available_via_sklearn"
+      ]
+    },
+    "isolation_forest_proxy": {
+      "positive_class": "DDoS",
+      "negative_class": "BENIGN",
+      "accuracy": 0.35538023623282605,
+      "precision_per_class": {
+        "BENIGN": 0.3785238914230165,
+        "DDoS": 0.14895509115162295
+      },
+      "recall_per_class": {
+        "BENIGN": 0.7986746607762701,
+        "DDoS": 0.026168808342772333
+      },
+      "f1_per_class": {
+        "BENIGN": 0.5136218355233119,
+        "DDoS": 0.04451679346201123
+      },
+      "support_per_class": {
+        "BENIGN": 19014,
+        "DDoS": 25603
+      },
+      "macro_f1": 0.27906931449266154,
+      "weighted_f1": 0.24443080089759792,
+      "confusion_matrix": [
+        [
+          15186,
+          3828
+        ],
+        [
+          24933,
+          670
+        ]
+      ],
+      "confusion_labels": [
+        "BENIGN",
+        "DDoS"
+      ],
+      "false_positive_rate": 0.2013253392237299,
+      "true_positive_rate": 0.026168808342772333,
+      "notes": [
+        "positive_class='DDoS' (attack); FPR = FP/(FP+TN) with FP = predicted DDoS when true BENIGN",
+        "confusion_matrix rows=true, cols=predicted, order=(negative, positive)",
+        "metrics computed with sklearn; not invented",
+        "classification_report_available_via_sklearn",
+        "IF evaluation maps anomaly\u2192DDoS and normal\u2192BENIGN as a proxy only",
+        "Isolation Forest was not trained with labels"
+      ]
+    },
+    "hybrid_binary_proxy": {
+      "positive_class": "DDoS",
+      "negative_class": "BENIGN",
+      "accuracy": 0.9997310442208127,
+      "precision_per_class": {
+        "BENIGN": 0.9995268138801262,
+        "DDoS": 0.9998827987654804
+      },
+      "recall_per_class": {
+        "BENIGN": 0.9998422215209846,
+        "DDoS": 0.999648478693903
+      },
+      "f1_per_class": {
+        "BENIGN": 0.9996844928222117,
+        "DDoS": 0.999765625
+      },
+      "support_per_class": {
+        "BENIGN": 19014,
+        "DDoS": 25603
+      },
+      "macro_f1": 0.9997250589111059,
+      "weighted_f1": 0.9997310496760548,
+      "confusion_matrix": [
+        [
+          19011,
+          3
+        ],
+        [
+          9,
+          25594
+        ]
+      ],
+      "confusion_labels": [
+        "BENIGN",
+        "DDoS"
+      ],
+      "false_positive_rate": 0.0001577784790154623,
+      "true_positive_rate": 0.999648478693903,
+      "notes": [
+        "positive_class='DDoS' (attack); FPR = FP/(FP+TN) with FP = predicted DDoS when true BENIGN",
+        "confusion_matrix rows=true, cols=predicted, order=(negative, positive)",
+        "metrics computed with sklearn; not invented",
+        "classification_report_available_via_sklearn"
+      ]
+    },
+    "hybrid_binary_proxy_note": "SUSPICIOUS mapped to BENIGN for binary metrics; not promoted to DDoS"
+  }
+}

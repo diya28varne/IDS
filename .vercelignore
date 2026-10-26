@@ -1,0 +1,16 @@
+.venv
+venv
+__pycache__
+.pytest_cache
+.cache
+data
+artifacts/video_frames
+artifacts/*.log
+artifacts/*.sqlite3
+frontend/node_modules
+frontend/dist
+frontend/test-results
+frontend/playwright-report
+frontend/.e2e-tmp
+.git
+*.pyc

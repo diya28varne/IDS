@@ -41,8 +41,10 @@ export default function App() {
     setRefreshing(false)
   }
 
+  const basename = import.meta.env.BASE_URL.replace(/\/$/, '') || undefined
+
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={basename}>
       <Routes>
         <Route
           element={
