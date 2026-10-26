@@ -238,3 +238,5 @@ artifacts/models/
 *.joblib
 *.pkl
 *.sqlite3
+*.sqlite
+artifacts/threatlens_alerts.sqlite3

@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ThreatLens · Hybrid network threat investigation</title>
+  <meta name="description" content="Explainable hybrid IDS research prototype. Random Forest + Isolation Forest → risk-scored alerts." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Caveat:wght@600;700&family=IBM+Plex+Mono:wght@500;600&family=Manrope:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/styles.css" />
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml" />
+</head>
+<body class="spectrum">
+  <a class="skip-link" href="#investigate">Skip to investigation</a>
+
+  <header class="topbar">
+    <a class="logo" href="/" aria-label="ThreatLens home">
+      <i class="logo-mark" aria-hidden="true"></i>
+      ThreatLens
+    </a>
+    <nav aria-label="Primary">
+      <a href="#pipeline">How it works</a>
+      <a href="#investigate">Investigate</a>
+      <a href="#alerts">Alerts</a>
+      <a href="http://127.0.0.1:5173/" target="_blank" rel="noopener">Dashboard</a>
+      <a href="/docs" target="_blank" rel="noopener">API</a>
+    </nav>
+    <span id="health-chip" class="status-chip status-chip--pending" aria-live="polite">Checking models…</span>
+  </header>
+
+  <main>
+    <section class="hero" aria-labelledby="hero-title">
+      <p class="kicker">
+        <span>Hybrid IDS research</span>
+        for flows that need a scored decision
+      </p>
+      <h1 id="hero-title">See the flow.<br /><em>Score the threat.</em></h1>
+      <p class="hero-lede">
+        ThreatLens is a hybrid investigation layer for network-flow features.
+        Fuse Random Forest and Isolation Forest votes, catch disagreement as suspicion,
+        and prioritize every alert with a risk score you can actually explain.
+      </p>
+      <div class="hero-actions">
+        <a class="primary" href="#investigate">Run a prediction</a>
+        <button type="button" class="copy-command" id="copy-uvicorn" title="Copy start command">
+          <code>uvicorn threatlens.api.app:app</code>
+          <span>Copy</span>
+        </button>
+      </div>
+      <div class="hero-proofline">
+        <p class="works-with">66 CICIDS features · RF + IF · hybrid fusion · risk 0–100</p>
+        <span class="meta-pill" id="feature-count-pill">Schema loading…</span>
+      </div>
+    </section>
+
+    <section class="boundary-diagram" aria-labelledby="boundary-diagram-title">
+      <p class="boundary-kicker" id="boundary-diagram-title">Before a flow is scored</p>
+      <div class="boundary-card">
+        <figure class="boundary-flow" aria-label="ThreatLens sits between network flows and the alert ledger">
+          <div class="boundary-node boundary-node--source">
+            <svg class="boundary-sketch" viewBox="0 0 140 96" aria-hidden="true">
+              <rect x="10" y="8" width="120" height="80" rx="6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+              <path d="M10 28h120" fill="none" stroke="currentColor" stroke-width="2"/>
+              <circle cx="24" cy="18" r="3.5" fill="#d83a32"/>
+              <circle cx="36" cy="18" r="3.5" fill="#2455f4"/>
+              <circle cx="48" cy="18" r="3.5" fill="#ffbf38"/>
+              <text x="70" y="62" text-anchor="middle" class="boundary-sketch-label">Network flow</text>
+            </svg>
+          </div>
+
+          <div class="boundary-edge">
+            <span>Incoming features</span>
+            <i aria-hidden="true"></i>
+          </div>
+
+          <div class="boundary-node boundary-node--core">
+            <svg class="boundary-mark" viewBox="0 0 72 72" aria-hidden="true">
+              <circle cx="28" cy="28" r="18" fill="#2455f4" opacity="0.9"/>
+              <circle cx="44" cy="28" r="18" fill="#d83a32" opacity="0.85"/>
+              <circle cx="36" cy="44" r="18" fill="#131229" opacity="0.88"/>
+            </svg>
+            <strong>ThreatLens</strong>
+          </div>
+
+          <div class="boundary-edge">
+            <span>Hybrid checks pass</span>
+            <i aria-hidden="true"></i>
+          </div>
+
+          <div class="boundary-node boundary-node--sink">
+            <svg class="boundary-sketch" viewBox="0 0 140 96" aria-hidden="true">
+              <rect x="18" y="10" width="104" height="68" rx="8" fill="none" stroke="currentColor" stroke-width="2.5"/>
+              <text x="70" y="28" text-anchor="middle" class="boundary-sketch-label boundary-sketch-label--sm">Alert</text>
+              <text x="42" y="52" text-anchor="middle" font-size="16" fill="currentColor">&gt;_</text>
+              <text x="70" y="52" text-anchor="middle" font-size="15" fill="currentColor">{ }</text>
+              <path d="M92 40c6 0 12 4 12 12s-6 12-12 12-12-4-12-12 6-12 12-12z" fill="none" stroke="currentColor" stroke-width="2"/>
+              <path d="M92 46v8M88 50h8" stroke="currentColor" stroke-width="1.8"/>
+            </svg>
+            <p>Decision · risk · reason</p>
+          </div>
+        </figure>
+
+        <div class="boundary-checks">
+          <div class="boundary-checks-head">
+            <h3>The checks</h3>
+            <p>Checked before an alert is raised.</p>
+          </div>
+          <ul class="boundary-check-grid">
+            <li>Are the features schema-valid?</li>
+            <li>Is Random Forest ready to vote?</li>
+            <li>Are all 66 values finite?</li>
+            <li>Does Isolation Forest agree?</li>
+            <li>Are both model artifacts loaded?</li>
+            <li>Should disagreement raise suspicion?</li>
+            <li>Is hybrid fusion able to score risk?</li>
+            <li>Is the decision explainable for triage?</li>
+          </ul>
+          <p class="boundary-fail">
+            <span aria-hidden="true">✕</span>
+            If a required check fails, ThreatLens stops the prediction.
+          </p>
+        </div>
+      </div>
+      <p class="boundary-caption">
+        ThreatLens sits between raw flow features and the alert you investigate.
+      </p>
+    </section>
+
+    <section class="manifesto" aria-labelledby="manifesto-title">
+      <p>Controlled decisions. Traceable outcomes.</p>
+      <h2 id="manifesto-title">Alerts without the black box.</h2>
+      <p class="manifesto-lede">
+        Every prediction returns the final decision, both model votes,
+        a risk score for prioritization, and a plain-language explanation.
+        Accuracy is evaluated offline — a green health check only means artifacts loaded.
+      </p>
+      <a class="manifesto-link" href="/limits#trust-boundary">
+        See the implementation and its limits →
+      </a>
+    </section>
+
+    <section class="pipeline" id="pipeline" aria-labelledby="pipeline-title">
+      <div class="pipeline-grid">
+        <header class="pipeline-copy">
+          <p class="pipeline-kicker">One flow / five decisions</p>
+          <h2 id="pipeline-title">The alert only lands after the boundary says yes.</h2>
+          <p>
+            ThreatLens evaluates deterministic facts in order.
+            A refusal is returned as a useful runtime outcome,
+            not discovered later in a dashboard.
+          </p>
+        </header>
+        <ol class="journey-steps">
+          <li>
+            <span>1</span>
+            <div>
+              <b>Are the features valid?</b>
+              <p>Schema order, finite values, 66 CICIDS fields.</p>
+            </div>
+            <i>PASS</i>
+          </li>
+          <li>
+            <span>2</span>
+            <div>
+              <b>Can Random Forest classify it?</b>
+              <p>Supervised vote, BENIGN or DDoS, class signal.</p>
+            </div>
+            <i>VOTE</i>
+          </li>
+          <li>
+            <span>3</span>
+            <div>
+              <b>Does Isolation Forest agree?</b>
+              <p>Anomaly score, normal vs outlier, unsupervised signal.</p>
+            </div>
+            <i>CHECK</i>
+          </li>
+          <li>
+            <span>4</span>
+            <div>
+              <b>Should hybrid fusion escalate?</b>
+              <p>Agreement, disagreement, suspicion, risk 0–100.</p>
+            </div>
+            <i>SCORE</i>
+          </li>
+          <li class="execute">
+            <span>5</span>
+            <div>
+              <b>Raise the explainable alert</b>
+              <p>Only now does the decision become a triage-ready alert.</p>
+            </div>
+            <i>RAISE</i>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="consequences" id="examples" aria-labelledby="consequences-title">
+      <header class="consequences-copy">
+        <p class="section-tag">Where decisions land</p>
+        <h2 id="consequences-title">DDoS is one example.<br />Every scored flow belongs here.</h2>
+      </header>
+      <div class="orbit" role="img" aria-label="ThreatLens hybrid decision boundary surrounded by example flow outcomes">
+        <span class="orbit-ring" aria-hidden="true"></span>
+        <span class="orbit-ring orbit-ring--inner" aria-hidden="true"></span>
+        <div class="orbit-core">
+          <span>ThreatLens</span>
+          <strong>hybrid decision boundary</strong>
+        </div>
+        <div class="orbit-node orbit-node--a">DDoS flows</div>
+        <div class="orbit-node orbit-node--b">BENIGN baseline</div>
+        <div class="orbit-node orbit-node--c">RF / IF disagree</div>
+        <div class="orbit-node orbit-node--d">Risk triage</div>
+        <div class="orbit-node orbit-node--e">Alert history</div>
+        <div class="orbit-node orbit-node--f">CICIDS features</div>
+      </div>
+    </section>
+
+    <section class="investigate" id="investigate" aria-labelledby="investigate-title">
+      <header class="section-head">
+        <p class="section-tag">Live console</p>
+        <h2 id="investigate-title">Investigate a flow.</h2>
+        <p>Paste a feature object, load a zero baseline, or fill a demo DDoS-shaped sample. Strict schema validation applies.</p>
+      </header>
+
+      <div class="console-grid">
+        <div class="console-panel">
+          <div class="panel-bar">
+            <span>Feature record (JSON)</span>
+            <div class="panel-actions">
+              <button type="button" class="ghost" id="btn-zeros">Zero baseline</button>
+              <button type="button" class="ghost" id="btn-demo">Demo sample</button>
+              <button type="button" class="ghost" id="btn-schema">Show schema</button>
+            </div>
+          </div>
+          <label class="sr-only" for="feature-json">Feature JSON</label>
+          <textarea id="feature-json" spellcheck="false" rows="18" placeholder='{"Flow Duration": 0, ...}'></textarea>
+          <div class="console-footer">
+            <button type="button" class="primary" id="btn-predict">Score this flow</button>
+            <p class="hint" id="console-hint">Models must be ready. Health ≠ detection accuracy.</p>
+          </div>
+        </div>
+
+        <aside class="console-side" aria-live="polite">
+          <div class="side-card">
+            <p class="side-label">System</p>
+            <dl id="health-detail" class="kv">
+              <div><dt>Status</dt><dd>—</dd></div>
+              <div><dt>RF loaded</dt><dd>—</dd></div>
+              <div><dt>IF loaded</dt><dd>—</dd></div>
+              <div><dt>Features</dt><dd>—</dd></div>
+            </dl>
+          </div>
+          <div class="side-card side-card--note">
+            <p class="side-label">Trust boundary</p>
+            <p>
+              This UI never uploads model files or filesystem paths.
+              Artifacts load once on the server. Risk score is a prioritization heuristic.
+            </p>
+          </div>
+        </aside>
+      </div>
+
+      <div id="error-banner" class="error-banner" hidden></div>
+    </section>
+
+    <section class="alerts" id="alerts" aria-labelledby="alerts-title">
+      <header class="section-head">
+        <p class="section-tag">Explainable output</p>
+        <h2 id="alerts-title">Threat alerts</h2>
+        <p id="alerts-empty">Run a prediction to populate this ledger.</p>
+      </header>
+      <div id="alert-list" class="alert-list"></div>
+    </section>
+
+    <section class="honesty" aria-labelledby="honesty-title">
+      <p class="section-tag">The honest boundary</p>
+      <h2 id="honesty-title">Deterministic hybrid scoring, with a clear trust boundary.</h2>
+      <div class="honesty-grid">
+        <p>
+          <strong>ThreatLens ships deterministic controls for</strong>
+          feature validation, Random Forest and Isolation Forest votes,
+          hybrid fusion, risk triage 0–100, explainable alert output,
+          and SQLite persistence of scored occurrences.
+        </p>
+        <p>
+          <strong>Health is not detection quality.</strong>
+          A green status only means artifacts and the database loaded.
+          Broader live capture, traffic blocking, calibrated attack probability,
+          and production access control still require additional systems.
+        </p>
+      </div>
+    </section>
+
+    <section class="closing" aria-labelledby="closing-title">
+      <p class="closing-kicker">Start with one flow</p>
+      <h2 id="closing-title">Score the flow.<br /><em>Keep the boundary honest.</em></h2>
+      <div class="hero-actions closing-actions">
+        <a class="primary" href="#investigate">Run a prediction</a>
+        <button type="button" class="copy-command copy-command--on-dark" id="copy-uvicorn-close" title="Copy start command">
+          <code>uvicorn threatlens.api.app:app</code>
+          <span>Copy</span>
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <a class="logo" href="/">
+      <i class="logo-mark" aria-hidden="true"></i>
+      ThreatLens
+    </a>
+    <p>Hybrid IDS research console for scored network-flow decisions.</p>
+    <nav aria-label="Footer">
+      <a href="/limits">Docs</a>
+      <a href="/health">Health</a>
+      <a href="/docs">OpenAPI</a>
+    </nav>
+  </footer>
+
+  <dialog id="schema-dialog" class="schema-dialog">
+    <form method="dialog">
+      <header>
+        <h3>Required feature order</h3>
+        <button type="submit" class="ghost" value="close">Close</button>
+      </header>
+      <ol id="schema-list"></ol>
+    </form>
+  </dialog>
+
+  <script src="/static/app.js" defer></script>
+</body>
+</html>

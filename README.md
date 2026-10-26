@@ -12,29 +12,103 @@ ThreatLens is a final-year research prototype for students, researchers, and ana
 
 Present now:
 
-- Python package foundation (`src/threatlens`) with a local virtual environment workflow
-- Minimal dependencies in `requirements.txt` / `pyproject.toml`
-- Dataset **intake** helpers: path conventions, CSV schema checks, load, and stratified train/val/test split
-- Synthetic fixture at `tests/fixtures/synthetic_flows.csv` (not a real IDS corpus)
-- Smoke tests and intake tests (`pytest`)
+- Python package (`src/threatlens`) with data intake, cleaning, and 66-feature preparation
+- Random Forest and Isolation Forest baselines with saved artifacts under `artifacts/models/`
+- Hybrid decision engine, risk scoring, and explainable alerts
+- End-to-end inference via `predict_alerts`
+- FastAPI HTTP API: `GET /health`, `GET /schema`, `POST /predict`
+- SQLite alert history: `GET /alerts`, `GET /alerts/stats`, `GET /alerts/{record_id}` (persisted after successful predict)
+- Mycelium-inspired investigation UI at `GET /` (cream paper, two-colour headlines, mono labels)
+- React cybersecurity dashboard in `frontend/` (Overview, Alert History, Traffic Analysis, About)
 
 Not implemented yet:
 
-- Loading a real CICIDS2017 / UNSW-NB15 extract
-- Feature scaling / encoders fitted only on train (next preprocessing step)
-- A supervised baseline (planned: Random Forest)
-- An anomaly baseline (planned: Isolation Forest)
-- A tested hybrid fusion rule
-- Explanations, a 0–100 risk score, and an incident ledger
-- A backend API and an investigation dashboard
-- Drift tests, retraining checks, and reported evaluation numbers
+- Authentication or multi-user incident ledger
+- Live packet capture or traffic blocking
+- Drift monitoring / automated retraining loops
 
-No accuracy, precision, recall, or other model results exist here, because no model has been trained.
+## Documentation
 
-## Intended path
+- [Architecture](docs/ARCHITECTURE.md) — system design, data flow, endpoints, and limitations
+- [Evaluation report](docs/EVALUATION.md) — measured RF, Isolation Forest, and hybrid results from saved artifacts
 
-Recorded network-flow data, such as CICIDS2017 or UNSW-NB15 when a local copy is available, will be validated and split so that preprocessing is fit only on training data. Two models and a documented fusion rule will score that data. The system will recommend investigation. It will not block live traffic or capture traffic without authorization.
+## Run the API
 
-The first build step is a reproducible data pipeline and one evaluated baseline. The dashboard comes after there is real backend data to show.
+```powershell
+cd C:\Users\mr\IDS
+.\.venv\Scripts\python.exe -m pip install -e ".[dev]"
+.\.venv\Scripts\python.exe -m uvicorn threatlens.api.app:app --host 127.0.0.1 --port 8000
+```
 
-The later interface will follow the visual language of the public [Mycelium](https://mycelium.nandanadileep.com/) site: warm paper background, large two-colour headlines, and mono labels. That site is a design reference only. Its code and product are not part of this repository.
+Then open [http://127.0.0.1:8000/](http://127.0.0.1:8000/) for the static investigation UI.
+
+- Static UI: `/`
+- Health: `/health` (models + database readiness)
+- Schema: `/schema`
+- Predict: `POST /predict` (also persists successful alerts)
+- Alert history: `GET /alerts?limit=50&offset=0` (includes `total`), `GET /alerts/{record_id}`
+- OpenAPI docs: `/docs`
+
+## Run the React dashboard
+
+Terminal 1 — API:
+
+```powershell
+cd C:\Users\mr\IDS
+.\.venv\Scripts\python.exe -m uvicorn threatlens.api.app:app --host 127.0.0.1 --port 8000
+```
+
+Terminal 2 — dashboard:
+
+```powershell
+cd C:\Users\mr\IDS\frontend
+node "C:\Program Files\nodejs\node_modules\npm\bin\npm-cli.js" install
+node "C:\Program Files\nodejs\node_modules\npm\bin\npm-cli.js" run dev
+```
+
+Open [http://127.0.0.1:5173/](http://127.0.0.1:5173/).
+
+Vite proxies `/health`, `/schema`, `/predict`, `/alerts`, and `/alerts/stats` to `127.0.0.1:8000`. Optional direct API URL: copy `frontend/.env.example` to `.env` and set `VITE_API_BASE_URL=http://127.0.0.1:8000`.
+
+Database path defaults to `artifacts/threatlens_alerts.sqlite3` (override with `THREATLENS_DB_PATH`). Clients cannot supply DB paths.
+
+A successful health check means the process is up and artifacts/database are ready. It does **not** prove detection accuracy. Risk scores are prioritization heuristics (0–100), not attack probabilities.
+
+CORS allows only the Vite development origins `http://127.0.0.1:5173` and `http://localhost:5173`.
+
+Overview decision/risk charts use **`GET /alerts/stats`** (full SQLite aggregates), not a truncated page sample. The recent-activity table still uses a short `GET /alerts` page.
+
+## Integration testing
+
+The complete research workflow covered by automated tests is:
+
+1. Input / feature validation
+2. Random Forest + Isolation Forest inference
+3. Hybrid decision + risk score + explanation
+4. SQLite persistence of each occurrence
+5. Alert list / detail / full-database stats retrieval
+6. Dashboard empty / error / ready view-state helpers
+7. Browser smoke coverage of the React dashboard
+
+Python (uses the project venv; temporary SQLite; no artifact retrain):
+
+```powershell
+cd C:\Users\mr\IDS
+.\.venv\Scripts\python.exe -m pytest -q tests/test_integration_workflow.py
+.\.venv\Scripts\python.exe -m pytest -q
+```
+
+Frontend unit helpers + build + Playwright smoke:
+
+```powershell
+cd C:\Users\mr\IDS\frontend
+node "C:\Program Files\nodejs\node_modules\npm\bin\npm-cli.js" test
+node "C:\Program Files\nodejs\node_modules\npm\bin\npm-cli.js" run build
+node "C:\Program Files\nodejs\node_modules\npm\bin\npm-cli.js" run test:e2e
+```
+
+`tests/test_integration_workflow.py` asserts the API contract the React dashboard depends on (`total`, `/alerts/stats`, `record_id`, decision, risk score, explanation, model fields). Frontend `src/lib/viewState.test.js` covers empty/error/ready helpers. `frontend/e2e/` exercises navigation and backend-unavailable UI in Chromium.
+
+## Design note
+
+The static investigation page at `/` follows the visual language of the public [Mycelium](https://mycelium.nandanadileep.com/) site as a **design reference only**. Mycelium’s code and product are not part of this repository. The React dashboard under `frontend/` uses a separate dark operations theme.

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ThreatLens Docs · Implementation and limits</title>
+  <meta name="description" content="ThreatLens handbook: trust boundary, hybrid inference path, and honest research limits." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Mono:wght@500;600&family=Manrope:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/styles.css" />
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml" />
+</head>
+<body class="spectrum handbook">
+  <a class="skip-link" href="#trust-boundary">Skip to trust boundary</a>
+
+  <header class="topbar">
+    <a class="logo" href="/" aria-label="ThreatLens home">
+      <i class="logo-mark" aria-hidden="true"></i>
+      ThreatLens
+    </a>
+    <nav aria-label="Primary">
+      <a href="/">Home</a>
+      <a href="/limits" aria-current="page">Docs</a>
+      <a href="http://127.0.0.1:5173/" target="_blank" rel="noopener">Dashboard</a>
+      <a href="/docs" target="_blank" rel="noopener">API</a>
+    </nav>
+  </header>
+
+  <div class="handbook-shell">
+    <aside class="handbook-nav" aria-label="Handbook">
+      <p class="handbook-nav-label">How to use</p>
+      <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/#pipeline">How it works</a></li>
+        <li><a href="/#investigate">Investigate a flow</a></li>
+        <li><a href="/#alerts">Alert ledger</a></li>
+        <li><a href="http://127.0.0.1:5173/" target="_blank" rel="noopener">Dashboard</a></li>
+      </ul>
+
+      <p class="handbook-nav-label">Trust &amp; inference</p>
+      <ul>
+        <li><a href="#trust-boundary">Trust boundary</a></li>
+        <li><a href="#hybrid-path">Hybrid path</a></li>
+        <li><a href="#persistence">Persistence</a></li>
+      </ul>
+
+      <p class="handbook-nav-label">Reference</p>
+      <ul>
+        <li><a href="#implementation">Implementation</a></li>
+        <li><a href="#limits">Limits</a></li>
+        <li><a href="/docs" target="_blank" rel="noopener">OpenAPI</a></li>
+        <li><a href="/schema" target="_blank" rel="noopener">Schema</a></li>
+      </ul>
+    </aside>
+
+    <main class="handbook-main" id="handbook">
+      <header class="handbook-intro">
+        <p class="section-tag">Docs</p>
+        <h1>Start with one flow. Score its full decision path.</h1>
+        <p>
+          ThreatLens is a research prototype for hybrid IDS inference on CICIDS-style
+          network-flow features. This handbook states what the running code does —
+          and what a green health check must never be mistaken for.
+        </p>
+      </header>
+
+      <section id="trust-boundary" class="handbook-section" aria-labelledby="trust-boundary-title">
+        <h2 id="trust-boundary-title">Trust boundary</h2>
+        <p>
+          Model output is data for investigation, even when the decision looks decisive.
+          Random Forest votes, Isolation Forest anomaly flags, hybrid fusion, and the risk
+          score must not be promoted into proof that an attack occurred.
+        </p>
+        <pre class="handbook-code" tabindex="0"><code>POST /predict
+{
+  "features": { "Flow Duration": 0, "...": "66 schema fields" }
+}
+
+→ decision · rf_vote · if_vote · risk_score · explanation</code></pre>
+        <p>
+          This is a narrow honesty boundary at the investigation edge. It keeps triage
+          scores from being treated as calibrated attack probability or live defence authority.
+          Clients never upload model files, database paths, or filesystem locations —
+          artifacts load once on the server.
+        </p>
+      </section>
+
+      <section id="hybrid-path" class="handbook-section" aria-labelledby="hybrid-path-title">
+        <p class="handbook-group">Inference path</p>
+        <h2 id="hybrid-path-title">Hybrid path</h2>
+        <p>
+          Each prediction validates 66 finite numeric features in trained schema order,
+          then runs supervised and unsupervised votes before fusion:
+        </p>
+        <ol class="handbook-steps">
+          <li><strong>Validate</strong> — schema order, finite values, no client-chosen artifacts.</li>
+          <li><strong>Vote</strong> — Random Forest returns BENIGN or DDoS.</li>
+          <li><strong>Check</strong> — Isolation Forest returns normal or anomaly.</li>
+          <li><strong>Fuse</strong> — hybrid rules emit BENIGN, SUSPICIOUS, or DDoS plus risk 0–100.</li>
+          <li><strong>Explain</strong> — structured reason, supporting scores, optional SQLite persist.</li>
+        </ol>
+      </section>
+
+      <section id="persistence" class="handbook-section" aria-labelledby="persistence-title">
+        <h2 id="persistence-title">Persistence</h2>
+        <p>
+          Alert occurrences can be stored in SQLite for history and dashboard aggregates.
+          The database path is server-configured (<code>THREATLENS_DB_PATH</code> or the default
+          under <code>artifacts/</code>). The UI and API never accept a client-supplied DB path.
+        </p>
+      </section>
+
+      <section id="implementation" class="handbook-section" aria-labelledby="implementation-title">
+        <p class="handbook-group">Reference</p>
+        <h2 id="implementation-title">Implementation</h2>
+        <ul class="limits-list">
+          <li>FastAPI loads RF/IF joblib artifacts at startup into a shared model bundle.</li>
+          <li>Static Mycelium-inspired UI is served from <code>/</code>; React dashboard proxies the same API.</li>
+          <li>Offline training and metrics live under <code>artifacts/models/</code> and <code>docs/EVALUATION.md</code>.</li>
+          <li>Architecture of the implemented system is documented in <code>docs/ARCHITECTURE.md</code>.</li>
+        </ul>
+      </section>
+
+      <section id="limits" class="handbook-section" aria-labelledby="limits-title">
+        <h2 id="limits-title">Limits</h2>
+        <ul class="limits-list">
+          <li>It does not capture live packets or block network traffic.</li>
+          <li>It does not treat <code>/health</code> readiness as detection accuracy.</li>
+          <li>It does not claim calibrated P(attack) from the risk score.</li>
+          <li>It does not include authentication, multi-tenant access control, or auto-retraining.</li>
+        </ul>
+        <p>
+          Accuracy claims belong in offline evaluation docs — not in a successful health chip.
+        </p>
+      </section>
+
+      <p class="limits-back">
+        <a href="/">← Back to ThreatLens</a>
+      </p>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <a class="logo" href="/">
+      <i class="logo-mark" aria-hidden="true"></i>
+      ThreatLens
+    </a>
+    <p>Final-year research prototype · Mycelium-inspired visual language · design reference only</p>
+    <nav aria-label="Footer">
+      <a href="/health">Health</a>
+      <a href="/schema">Schema</a>
+      <a href="/docs">OpenAPI</a>
+    </nav>
+  </footer>
+</body>
+</html>
