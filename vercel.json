@@ -4,7 +4,7 @@
   "installCommand": "pip install -e . && cd frontend && npm ci",
   "buildCommand": "cd frontend && npm run build",
   "functions": {
-    "src/threatlens/api/app.py": {
+    "app.py": {
       "maxDuration": 60,
       "memory": 1024
     }

@@ -34,7 +34,7 @@ pythonpath = ["src"]
 addopts = "-q"
 
 [tool.vercel]
-entrypoint = "threatlens.api.app:app"
+entrypoint = "app:app"
 
 [tool.vercel.scripts]
 build = "cd frontend && npm ci && npm run build"
